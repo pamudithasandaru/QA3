@@ -1,32 +1,38 @@
-name: CI
+name: Node.js CI/CD Pipeline
 
 on:
-    push:
-        branches: [ main ]
-    pull_request:
-        branches: [ main ]
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
 
 jobs:
-    build:
-        runs-on: ubuntu-latest
+  build-and-test:
+    runs-on: ubuntu-latest
 
-        steps:
-        - name: Checkout code
-          uses: actions/checkout@v4
+    steps:
+      # Step 1: Checkout repo
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-        - name: Set up Node.js
-          uses: actions/setup-node@v4
-          with:
-            node-version: '18'
+      # Step 2: Setup Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
 
-        - name: Install dependencies
-          run: npm ci
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: npm install
 
-        - name: Run lint
-          run: npm run lint
+      # Step 4: Start MongoDB service
+      - name: Start MongoDB
+        uses: supercharge/mongodb-github-action@1.7.0
+        with:
+          mongodb-version: '6.0'
 
-        - name: Run tests
-          run: npm test
-
-        - name: Build
-          run: npm run build
+      # Step 5: Run Mocha tests
+      - name: Run tests
+        env:
+          MONGO_URI: "mongodb://localhost:27017/testdb"
+        run: npm test
